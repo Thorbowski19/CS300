@@ -1,0 +1,441 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset2 Symbol;}}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\b\f0\fs22\lang9 Pseudocode for ABC University Course Information System\par
+Using Vector\par
+\b0 // Define a struct to hold course information\par
+STRUCT Course\par
+    STRING courseNumber\par
+    STRING title\par
+    LIST<String> prerequisites\par
+END STRUCT\par
+\par
+// Define a vector to store course objects\par
+VECTOR<Course> courseVector\par
+\par
+// Function to load course data from a file\par
+FUNCTION loadCourseData(filePath)\par
+    OPEN file at filePath FOR reading\par
+    IF file is not open THEN\par
+        PRINT "Error: Unable to open file."\par
+        RETURN\par
+    END IF\par
+\par
+    WHILE NOT end of file\par
+        READ line from file\par
+        SPLIT line into tokens using delimiter (e.g., comma)\par
+        \par
+        // Validate the number of parameters\par
+        IF LENGTH(tokens) < 2 THEN\par
+            PRINT "Error: Invalid format in line: " + line\par
+            CONTINUE\par
+        END IF\par
+        \par
+        // Extract course number and title\par
+        STRING courseNumber = tokens[0]\par
+        STRING title = tokens[1]\par
+        \par
+        // Initialize prerequisites list\par
+        LIST<String> prerequisites\par
+        \par
+        // Check for prerequisites\par
+        FOR i FROM 2 TO LENGTH(tokens) - 1\par
+            ADD tokens[i] to prerequisites\par
+        END FOR\par
+        \par
+        // Create a new Course object\par
+        Course newCourse\par
+        newCourse.courseNumber = courseNumber\par
+        newCourse.title = title\par
+        newCourse.prerequisites = prerequisites\par
+        \par
+        // Validate prerequisites\par
+        FOR EACH prerequisite IN prerequisites\par
+            IF NOT courseExists(prerequisite) THEN\par
+                PRINT "Error: Prerequisite " + prerequisite + " does not exist for course " + courseNumber\par
+                CONTINUE\par
+            END IF\par
+        END FOR\par
+        \par
+        // Add the new course to the vector\par
+        ADD newCourse to courseVector\par
+    END WHILE\par
+\par
+    CLOSE file\par
+END FUNCTION\par
+\par
+// Function to check if a course exists in the vector\par
+FUNCTION courseExists(courseNumber)\par
+    FOR EACH course IN courseVector\par
+        IF course.courseNumber == courseNumber THEN\par
+            RETURN TRUE\par
+        END IF\par
+    END FOR\par
+    RETURN FALSE\par
+END FUNCTION\par
+\par
+// Function to print course information and prerequisites\par
+FUNCTION printCourseInfo(courseNumber)\par
+    FOR EACH course IN courseVector\par
+        IF course.courseNumber == courseNumber THEN\par
+            PRINT "Course Number: " + course.courseNumber\par
+            PRINT "Title: " + course.title\par
+            PRINT "Prerequisites: " + JOIN(course.prerequisites, ", ")\par
+            RETURN\par
+        END IF\par
+    END FOR\par
+    PRINT "Error: Course " + courseNumber + " not found."\par
+END FUNCTION\par
+\par
+// Function to print all courses in alphanumeric order\par
+FUNCTION printAllCourses()\par
+    SORT courseVector BY courseNumber\par
+    FOR EACH course IN courseVector\par
+        PRINT course.courseNumber + ": " + course.title\par
+    END FOR\par
+END FUNCTION\par
+\par
+// Main program execution\par
+FUNCTION main()\par
+    STRING filePath = "path/to/course_data.txt"\par
+    WHILE TRUE\par
+        PRINT "1. Load Course Data"\par
+        PRINT "2. Print All Courses"\par
+        PRINT "3. Print Course Information"\par
+        PRINT "9. Exit"\par
+        STRING choice = GET user input\par
+        \par
+        IF choice == "1" THEN\par
+            CALL loadCourseData(filePath)\par
+        ELSE IF choice == "2" THEN\par
+            CALL printAllCourses()\par
+        ELSE IF choice == "3" THEN\par
+            STRING searchCourseNumber = GET user input for course number\par
+            CALL printCourseInfo(searchCourseNumber)\par
+        ELSE IF choice == "9" THEN\par
+            PRINT "Exiting program."\par
+            BREAK\par
+        ELSE\par
+            PRINT "Invalid option. Please try again."\par
+        END IF\par
+    END WHILE\par
+END FUNCTION\par
+\b Using Hash Table\par
+\b0 // Define a structure for Course\par
+STRUCT Course\par
+    STRING courseNumber\par
+    STRING title\par
+    LIST<String> prerequisites\par
+END STRUCT\par
+\par
+// Define a hash table to store courses\par
+HASH_TABLE coursesTable\par
+\par
+// Function to open and read the course data file\par
+FUNCTION loadCoursesFromFile(filePath)\par
+    OPEN file at filePath AS inputFile\par
+    IF inputFile is NOT OPEN THEN\par
+        PRINT "Error: Unable to open file."\par
+        RETURN\par
+    END IF\par
+\par
+    // Initialize a list to store all course numbers for validation\par
+    LIST allCourseNumbers\par
+\par
+    // Read each line from the file\par
+    WHILE NOT END OF inputFile\par
+        STRING line = READ LINE from inputFile\par
+        LIST tokens = SPLIT line by ","\par
+        \par
+        // Validate the number of parameters\par
+        IF LENGTH(tokens) < 2 THEN\par
+            PRINT "Error: Invalid format in line: " + line\par
+            CONTINUE\par
+        END IF\par
+\par
+        // Extract course number and title\par
+        STRING courseNumber = tokens[0]\par
+        STRING title = tokens[1]\par
+        \par
+        // Add course number to the list for later validation\par
+        ADD courseNumber to allCourseNumbers\par
+\par
+        // Create a new Course object\par
+        Course newCourse\par
+        newCourse.courseNumber = courseNumber\par
+        newCourse.title = title\par
+        newCourse.prerequisites = EMPTY LIST\par
+\par
+        // Check for prerequisites\par
+        IF LENGTH(tokens) > 2 THEN\par
+            FOR i FROM 2 TO LENGTH(tokens) - 1\par
+                STRING prerequisite = tokens[i]\par
+                ADD prerequisite to newCourse.prerequisites\par
+            END FOR\par
+        END IF\par
+\par
+        // Store the course in the hash table\par
+        INSERT newCourse INTO coursesTable USING courseNumber AS key\par
+    END WHILE\par
+\par
+    // Close the file\par
+    CLOSE inputFile\par
+\par
+    // Validate prerequisites\par
+    FOR EACH course IN coursesTable\par
+        FOR EACH prerequisite IN course.prerequisites\par
+            IF prerequisite NOT IN allCourseNumbers THEN\par
+                PRINT "Error: Prerequisite " + prerequisite + " for course " + course.courseNumber + " does not exist."\par
+            END IF\par
+        END FOR\par
+    END FOR\par
+END FUNCTION\par
+\par
+// Function to print course information\par
+FUNCTION printCourseInformation(courseNumber)\par
+    IF courseNumber NOT IN coursesTable THEN\par
+        PRINT "Error: Course " + courseNumber + " not found."\par
+        RETURN\par
+    END IF\par
+\par
+    Course course = coursesTable[courseNumber]\par
+    PRINT "Course Number: " + course.courseNumber\par
+    PRINT "Title: " + course.title\par
+    PRINT "Prerequisites: "\par
+    \par
+    IF LENGTH(course.prerequisites) == 0 THEN\par
+        PRINT "None"\par
+    ELSE\par
+        FOR EACH prerequisite IN course.prerequisites\par
+            PRINT prerequisite\par
+        END FOR\par
+    END IF\par
+END FUNCTION\par
+\par
+// Function to print all courses in alphanumeric order\par
+FUNCTION printAllCourses()\par
+    LIST allCourses = GET all values from coursesTable\par
+    SORT allCourses BY courseNumber\par
+    FOR EACH course IN allCourses\par
+        PRINT course.courseNumber + ": " + course.title\par
+    END FOR\par
+END FUNCTION\par
+\par
+// Main execution\par
+FUNCTION main()\par
+    STRING filePath = "path/to/course_data.txt"\par
+    WHILE TRUE\par
+        PRINT "1. Load Course Data"\par
+        PRINT "2. Print All Courses"\par
+        PRINT "3. Print Course Information"\par
+        PRINT "9. Exit"\par
+        STRING choice = GET user input\par
+        \par
+        IF choice == "1" THEN\par
+            CALL loadCoursesFromFile(filePath)\par
+        ELSE IF choice == "2" THEN\par
+            CALL printAllCourses()\par
+        ELSE IF choice == "3" THEN\par
+            STRING searchCourseNumber = GET user input for course number\par
+            CALL printCourseInformation(searchCourseNumber)\par
+        ELSE IF choice == "9" THEN\par
+            PRINT "Exiting program."\par
+            BREAK\par
+        ELSE\par
+            PRINT "Invalid option. Please try again."\par
+        END IF\par
+    END WHILE\par
+END FUNCTION\par
+\b Using Binary Search Tree\b0\par
+// Define a struct for Course\par
+STRUCT Course\par
+    STRING courseNumber\par
+    STRING title\par
+    LIST<String> prerequisites\par
+END STRUCT\par
+\par
+// Define a binary search tree node\par
+STRUCT TreeNode\par
+    Course course\par
+    TreeNode left\par
+    TreeNode right\par
+END STRUCT\par
+\par
+// Define the root of the binary search tree\par
+TreeNode root\par
+\par
+// Function to load courses from file into the binary search tree\par
+FUNCTION loadCoursesFromFile(filePath)\par
+    OPEN file at filePath FOR reading\par
+    IF file is not open THEN\par
+        PRINT "Error: Unable to open file."\par
+        RETURN\par
+\par
+    WHILE NOT end of file\par
+        READ line from file\par
+        SPLIT line into tokens using delimiter (e.g., comma)\par
+        \par
+        // Validate the number of parameters\par
+        IF LENGTH(tokens) < 2 THEN\par
+            PRINT "Error: Invalid format in line: " + line\par
+            CONTINUE\par
+        END IF\par
+        \par
+        // Extract course number and title\par
+        STRING courseNumber = tokens[0]\par
+        STRING title = tokens[1]\par
+        \par
+        // Initialize prerequisites list\par
+        LIST<String> prerequisites\par
+        \par
+        // Check for prerequisites\par
+        FOR i FROM 2 TO LENGTH(tokens) - 1\par
+            ADD tokens[i] to prerequisites\par
+        END FOR\par
+        \par
+        // Create a new Course object\par
+        Course newCourse\par
+        newCourse.courseNumber = courseNumber\par
+        newCourse.title = title\par
+        newCourse.prerequisites = prerequisites\par
+        \par
+        // Insert the new course into the binary search tree\par
+        INSERT course into BST(root, newCourse)\par
+    END WHILE\par
+\par
+    CLOSE file\par
+END FUNCTION\par
+\par
+// Function to insert a course into the binary search tree\par
+FUNCTION INSERT(node, newCourse)\par
+    IF node is NULL THEN\par
+        node = NEW TreeNode\par
+        node.course = newCourse\par
+        node.left = NULL\par
+        node.right = NULL\par
+        RETURN node\par
+    END IF\par
+\par
+    IF newCourse.courseNumber < node.course.courseNumber THEN\par
+        node.left = INSERT(node.left, newCourse)\par
+    ELSE\par
+        node.right = INSERT(node.right, newCourse)\par
+    END IF\par
+\par
+    RETURN node\par
+END FUNCTION\par
+\par
+// Function to print course information\par
+FUNCTION printCourseInformation(courseNumber)\par
+    TreeNode courseNode = FIND(root, courseNumber)\par
+    IF courseNode is NULL THEN\par
+        PRINT "Error: Course " + courseNumber + " not found."\par
+        RETURN\par
+    END IF\par
+\par
+    Course course = courseNode.course\par
+    PRINT "Course Number: " + course.courseNumber\par
+    PRINT "Title: " + course.title\par
+    PRINT "Prerequisites: "\par
+    \par
+    IF LENGTH(course.prerequisites) == 0 THEN\par
+        PRINT "None"\par
+    ELSE\par
+        FOR EACH prerequisite IN course.prerequisites\par
+            PRINT prerequisite\par
+        END FOR\par
+    END IF\par
+END FUNCTION\par
+\par
+// Function to find a course in the binary search tree\par
+FUNCTION FIND(node, courseNumber)\par
+    IF node is NULL OR node.course.courseNumber == courseNumber THEN\par
+        RETURN node\par
+    END IF\par
+\par
+    IF courseNumber < node.course.courseNumber THEN\par
+        RETURN FIND(node.left, courseNumber)\par
+    ELSE\par
+        RETURN FIND(node.right, courseNumber)\par
+    END IF\par
+END FUNCTION\par
+\par
+// Function to print all courses in alphanumeric order\par
+FUNCTION printAllCourses()\par
+    IN_ORDER_PRINT(root)\par
+END FUNCTION\par
+\par
+// In-order traversal to print courses\par
+FUNCTION IN_ORDER_PRINT(node)\par
+    IF node is not NULL THEN\par
+        IN_ORDER_PRINT(node.left)\par
+        PRINT node.course.courseNumber + ": " + node.course.title\par
+        IN_ORDER_PRINT(node.right)\par
+    END IF\par
+END FUNCTION\par
+\par
+// Main execution\par
+FUNCTION main()\par
+    STRING filePath = "path/to/course_data.txt"\par
+    WHILE TRUE\par
+        PRINT "1. Load Course Data"\par
+        PRINT "2. Print All Courses"\par
+        PRINT "3. Print Course Information"\par
+        PRINT "9. Exit"\par
+        STRING choice = GET user input\par
+        \par
+        IF choice == "1" THEN\par
+            CALL loadCoursesFromFile(filePath)\par
+        ELSE IF choice == "2" THEN\par
+            CALL printAllCourses()\par
+        ELSE IF choice == "3" THEN\par
+            STRING searchCourseNumber = GET user input for course number\par
+            CALL printCourseInformation(searchCourseNumber)\par
+        ELSE IF choice == "9" THEN\par
+            PRINT "Exiting program."\par
+            BREAK\par
+        ELSE\par
+            PRINT "Invalid option. Please try again."\par
+        END IF\par
+    END WHILE\par
+END FUNCTION\par
+\b Runtime Analysis\b0\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Vector Data Structure\par
+
+\pard\sa200\sl276\slmult1 Loading Data:\par
+Reading the file and creating course objects takes O(n) time, where n is the number of courses. Each line is processed once.\par
+Sorting Courses:\par
+Sorting the vector takes O(n log n) time.\par
+Total Time Complexity: O(n log n) for loading and sorting.\par
+Space Complexity: O(n) for storing the courses.\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Hash Table Data Structure\par
+
+\pard\sa200\sl276\slmult1 Loading Data:\par
+Reading the file and creating course objects takes O(n) time.\par
+Total Time Complexity: O(n) for loading.\par
+Space Complexity: O(n) for storing the courses.\par
+Note: Hash table lookups for prerequisites are O(1) on average.\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Binary Search Tree Data Structure\par
+
+\pard\sa200\sl276\slmult1 Loading Data:\par
+Inserting into the BST takes O(n log n) time in the average case (O(n\'b2) in the worst case if the tree becomes unbalanced).\par
+Total Time Complexity: O(n log n) for loading.\par
+Space Complexity: O(n) for storing the courses.\par
+\b Recommendation\par
+\b0 Based on the analysis, the hash table is the most efficient data structure for this application. It provides O(n) time complexity for loading data and O(1) average time complexity for lookups, making it ideal for checking prerequisites. The vector and binary search tree both have O(n log n) complexities for loading and sorting, which is less efficient than the hash table.\par
+\par
+Advantages of Hash Table:\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Fast average-case lookups for prerequisites.\par
+{\pntext\f1\'B7\tab}Simplicity in implementation.\par
+
+\pard\sa200\sl276\slmult1 Disadvantages of Hash Table:\par
+
+\pard{\pntext\f1\'B7\tab}{\*\pn\pnlvlblt\pnf1\pnindent0{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Potential for collisions, which can degrade performance.\par
+{\pntext\f1\'B7\tab}Requires more memory overhead compared to a vector.\par
+
+\pard\sa200\sl276\slmult1 In conclusion, I recommend using the hash table for the ABC University Course Information System due to its efficiency in handling the required operations.\b\par
+}
+ 
